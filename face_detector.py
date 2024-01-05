@@ -1,6 +1,7 @@
 from flask import Flask, request
 from PIL import Image
 import numpy as np
+import requests
 import io
 import dlib
 import cv2
@@ -68,16 +69,17 @@ class Detector:
 
 
 mDetector = Detector()
-# image = cv2.imread('./input.png')
-# print(mDetector.detect(image))
 
 @app.route('/detect_face', methods=['POST'])
 
 def detect_face():    
     data = request.json
-    image_data = data['camera_frame']
+    image_url = data['camera_frame']
+    
+    response = requests.get(image_url)
+    response.raise_for_status()
 
-    image = Image.open(io.BytesIO(base64.b64decode(image_data)))
+    image = Image.open(io.BytesIO(response.content))
     cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         
     return mDetector.detect(cv_image)
